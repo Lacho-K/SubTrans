@@ -1,0 +1,318 @@
+﻿using System;
+using System.IO;
+using System.Net;
+using System.Web;
+using System.Linq;
+using System.Text;
+using System.Collections.Generic;
+using System.Text.RegularExpressions;
+
+namespace TranslateDemo
+{
+    class Program
+    {
+        public static String Text4Trans;
+        public static String BGText;
+        public static String Subs4Trans;
+        public static String NameOfSubs;
+        static void Main(string[] args)
+        {
+            Console.OutputEncoding = Encoding.UTF8;
+            Console.ForegroundColor = ConsoleColor.White;
+            Console.WriteLine(new string('>', Console.WindowWidth));
+            Console.ForegroundColor = ConsoleColor.Magenta;
+            Console.WriteLine(new string(' ', Console.WindowWidth/2) + "Welcome to TransSubs!");
+            Console.ForegroundColor = ConsoleColor.White;
+            Console.WriteLine(new string('<', Console.WindowWidth));
+            Console.WriteLine();
+            Console.Write("This is a tool for translating subtitles in the format: ");
+            Console.ForegroundColor = ConsoleColor.Yellow;
+            Console.WriteLine(".srt ");
+            Console.ForegroundColor = ConsoleColor.White;
+            Console.WriteLine();
+            Console.WriteLine("Instructions:");
+            Console.Write("Step 1: Put the ");
+            Console.ForegroundColor = ConsoleColor.Yellow;
+            Console.Write(".srt ");
+            Console.ForegroundColor = ConsoleColor.White;
+            Console.Write("file in the same directory as the");
+            Console.ForegroundColor = ConsoleColor.Cyan;
+            Console.Write(" .exe ");
+            Console.ForegroundColor = ConsoleColor.White;
+            Console.Write("of the program.");
+            Console.ForegroundColor = ConsoleColor.Green;
+            Console.WriteLine(" (Optional)");
+            Console.ForegroundColor = ConsoleColor.White;
+            Console.Write("Step 2: Type in the console the ");
+            Console.ForegroundColor = ConsoleColor.Magenta;
+            Console.Write("name ");
+            Console.ForegroundColor = ConsoleColor.White;
+            Console.Write("of the desired ");
+            Console.ForegroundColor = ConsoleColor.Yellow;
+            Console.Write(".srt ");
+            Console.ForegroundColor = ConsoleColor.White;
+            Console.Write("file. Or if the ");
+            Console.ForegroundColor = ConsoleColor.Yellow;
+            Console.Write(".srt ");
+            Console.ForegroundColor = ConsoleColor.White;
+            Console.Write("file is not in the same directory as the ");
+            Console.ForegroundColor = ConsoleColor.Cyan;
+            Console.Write(".exe ");
+            Console.ForegroundColor = ConsoleColor.White;
+            Console.Write("of the program, type in the whole directory in which your ");
+            Console.ForegroundColor = ConsoleColor.Yellow;
+            Console.Write(".srt ");
+            Console.ForegroundColor = ConsoleColor.White;
+            Console.WriteLine(" file is in.");
+            Console.Write("Step 3: Your translated file will be in the same directory as the");
+            Console.ForegroundColor = ConsoleColor.Cyan;
+            Console.Write(" .exe ");
+            Console.ForegroundColor = ConsoleColor.White;
+            Console.WriteLine("of the program.");
+            Console.WriteLine();
+            while (true)
+            {
+                Console.Write("Please type in the name of your ");
+                Console.ForegroundColor = ConsoleColor.Yellow;
+                Console.Write(".srt ");
+                Console.ForegroundColor = ConsoleColor.White;
+                Console.Write("file or the full path of the directory it's in, or type");
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.Write(" exit ");
+                Console.ForegroundColor = ConsoleColor.White;
+                Console.WriteLine("to stop the program.");
+                Subs4Trans = Console.ReadLine();
+                Text4Trans = String.Empty;
+                BGText = String.Empty;
+                NameOfSubs = String.Empty;
+                if (Subs4Trans == "exit")
+                {
+                    break;
+                }                   
+                else if (!Subs4Trans.Contains(".srt"))
+                {
+                    Subs4Trans += ".srt";
+                }
+                // if the input of the user is a directory extract the name of the .srt file
+                if (Subs4Trans.Contains('\\'))
+                {
+                    string[] subInfo = Subs4Trans.Split("\\");
+                    NameOfSubs = subInfo[subInfo.Length-1];
+                }
+                else
+                {
+                    NameOfSubs = Subs4Trans;
+                }
+                ReadSubs();
+                Console.ForegroundColor = ConsoleColor.Green;
+                Console.WriteLine();
+                Console.WriteLine("Please wait a second...");
+                Console.WriteLine();
+                Console.ForegroundColor = ConsoleColor.White;
+                using (StreamWriter w2 = new StreamWriter("RAWTransText.txt"))
+                {
+                    List<string> SubGroups = (from Match m in Regex.Matches(Text4Trans, @".{1,13562}")
+                                              select m.Value).ToList();
+                    foreach (string SubChunk in SubGroups)
+                    {
+                        Translate(SubChunk, w2);
+                    }
+                }
+                ReadTranslation();
+                TranslateSubs();
+                Console.WriteLine();
+            }                       
+        }
+
+        // Read the .srt file and put all of its text in a variable "Text4Trans"
+        public static void ReadSubs()
+        {
+            using (StreamReader reader = new StreamReader(Subs4Trans))
+            {
+                String line = reader.ReadLine();
+                int subNum = 1;
+                if (line.Contains('"'))
+                {
+                   line = RemoveUnwantedSign(line);
+                }
+                while (line != null)
+                {
+                    int num;
+                    if (subNum.ToString().Equals(line) && int.TryParse(line, out num))
+                    {
+                        if(num > 1)
+                        Text4Trans += " . ~~ - ";
+                        subNum++;
+                    }
+                    else if (line.Contains('"'))
+                    {
+                       line = RemoveUnwantedSign(line);                        
+                    }
+
+                    if(line.Contains("<i>") || line.Contains("</i>"))
+                    {
+                        RemoveForeignSigns(ref line);
+                    }
+                    
+                    if (line != string.Empty)
+                    {
+                        if (!Char.IsDigit(line[0]))
+                        {
+                            Text4Trans += line;
+                        }
+                    }
+
+                    line = reader.ReadLine();
+                }
+            }
+        }      
+
+        // Make a new .srt file with the name of the original .srt file + "-BG" and replace the original language text with the translated one.
+        public static void TranslateSubs()
+        {
+            using (StreamReader reader = new StreamReader(Subs4Trans))
+            {
+                String line = reader.ReadLine();
+                int subNum = -1;
+                bool isPrinted = false;
+                string[] orderedBGSubs = BGText.Split("~", StringSplitOptions.RemoveEmptyEntries);                
+                using (StreamWriter writer = new StreamWriter(NameOfSubs + "-BG" + ".srt"))
+                {
+                    while (line != null)
+                    {
+                        if (line != string.Empty)
+                        {
+                            if (!Char.IsDigit(line[0]))
+                            {
+                                if (!isPrinted)
+                                {
+                                    if (subNum < orderedBGSubs.Length)
+                                    {
+                                        if(orderedBGSubs[subNum].Contains('-'))
+                                        {
+                                            // removes dash at begining of the string, also removes dot at end of the string, fixes formating and puts that string in the .srt file  
+                                            if (subNum < orderedBGSubs.Length)
+                                            {
+                                                string filteredSub = orderedBGSubs[subNum].Substring(orderedBGSubs[subNum].IndexOf('-') + 1);
+                                                filteredSub = filteredSub.Remove(filteredSub.Length - 1);
+                                                line = FixFormating(filteredSub);
+                                            }
+                                        }
+                                        isPrinted = true;
+                                    }
+                                }
+                                else
+                                {
+                                    line = reader.ReadLine();
+                                    continue;
+                                }                                
+                            }
+                        }
+                        if ((subNum + 2).ToString().Equals(line))
+                        {
+                            Console.WriteLine($"Done {subNum + 2}");
+                            subNum++;
+                            isPrinted = false;
+                        }
+                        writer.WriteLine(line);
+                        line = reader.ReadLine();
+                    }                   
+                }
+            }
+        }
+
+        public static string FixFormating(string line)
+        {
+            if (line != "")
+            {
+                if (line[0] == ' ')
+                    line = line.Remove(0, 1);
+
+                for (int i = 0; i < line.Length - 1; i++)
+                {
+                    if (line[i] == '.' || line[i] == '?' || line[i] == '!')
+                    {
+                        if (line[i + 1] != ' ' && line[i + 1] != '.' && line[i + 1] != '?' && line[i + 1] != '!')
+                        {
+                            line = line.Insert(i + 1, " ");
+                        }
+                    }
+                }
+            }
+            return line;
+        }
+
+        // Translate the original text and put it in a .txt file with the name "RAWTransText".
+        public static void Translate(String text, StreamWriter writter)
+        {
+            var toLanguage = "bg";
+            var fromLanguage = "auto";
+            var url = $"https://translate.googleapis.com/translate_a/single?client=gtx&sl={fromLanguage}&tl={toLanguage}&dt=t&q={HttpUtility.UrlEncode(text)}";
+            var webClient = new WebClient
+            {
+                Encoding = Encoding.UTF8
+            };
+            var result = webClient.DownloadString(url);
+
+            writter.WriteLine(result);
+            webClient.Dispose();
+        }
+
+        // Read the "RAWTransText".txt file and put the text in the variable "BGText" in a formated way.
+        public static void ReadTranslation()
+        {
+            using (StreamReader reader = new StreamReader("RAWTransText.txt"))
+            {              
+                String line = reader.ReadLine();                   
+                BGText += line.Substring(4, line.IndexOf("\"", 4, StringComparison.Ordinal) - 4);
+                line = reader.ReadLine();
+                while (line != null)
+                {
+                    if (line.Length > 3)
+                    {
+                        if (line[0].Equals(',') && line[1].Equals('[') && line[2].Equals('"'))
+                        {
+                            BGText += line.Substring(3, line.IndexOf("\"", 4, StringComparison.Ordinal) - 4);
+                        }
+                        else if (line[0].Equals('[') && line[1].Equals('[') && line[2].Equals('['))
+                        {
+                            BGText += line.Substring(4, line.IndexOf("\"", 4, StringComparison.Ordinal) - 4);
+                        }
+                    }
+                   line = reader.ReadLine();
+                }                                         
+            }
+        }
+
+        // Removes " sign because it prevets the "BGText" from being formated properly
+        public static String RemoveUnwantedSign(string line)
+        {           
+            List<char> temp = line.ToList();
+            temp.RemoveAll(x => x == '"');
+            String result = String.Empty;
+            for (int i = 0; i < temp.Count; i++)
+            {
+                result += temp[i].ToString();
+            }
+            return result;
+        }
+        public static void RemoveForeignSigns(ref string line)
+        {
+            for (int i = 0; i < line.Length; i++)
+            {
+                if (line[i] == '<')
+                {
+                    if (line[i + 1] == '/')
+                    {
+                        line = line.Remove(i, 4);
+                    }
+                    else
+                    {
+                        line = line.Remove(i, 3);
+                    }
+                }
+            }
+        }
+    }
+}
+
