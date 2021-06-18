@@ -1,0 +1,11 @@
+C:\Users\kolev\source\repos\TranslateDemo\TranslateDemo\bin\Debug\netcoreapp3.0\TranslateDemo.exe
+C:\Users\kolev\source\repos\TranslateDemo\TranslateDemo\bin\Debug\netcoreapp3.0\TranslateDemo.deps.json
+C:\Users\kolev\source\repos\TranslateDemo\TranslateDemo\bin\Debug\netcoreapp3.0\TranslateDemo.runtimeconfig.json
+C:\Users\kolev\source\repos\TranslateDemo\TranslateDemo\bin\Debug\netcoreapp3.0\TranslateDemo.runtimeconfig.dev.json
+C:\Users\kolev\source\repos\TranslateDemo\TranslateDemo\bin\Debug\netcoreapp3.0\TranslateDemo.dll
+C:\Users\kolev\source\repos\TranslateDemo\TranslateDemo\bin\Debug\netcoreapp3.0\TranslateDemo.pdb
+C:\Users\kolev\source\repos\TranslateDemo\TranslateDemo\obj\Debug\netcoreapp3.0\TranslateDemo.csprojAssemblyReference.cache
+C:\Users\kolev\source\repos\TranslateDemo\TranslateDemo\obj\Debug\netcoreapp3.0\TranslateDemo.AssemblyInfoInputs.cache
+C:\Users\kolev\source\repos\TranslateDemo\TranslateDemo\obj\Debug\netcoreapp3.0\TranslateDemo.AssemblyInfo.cs
+C:\Users\kolev\source\repos\TranslateDemo\TranslateDemo\obj\Debug\netcoreapp3.0\TranslateDemo.dll
+C:\Users\kolev\source\repos\TranslateDemo\TranslateDemo\obj\Debug\netcoreapp3.0\TranslateDemo.pdb
