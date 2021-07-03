@@ -1,0 +1,7 @@
+C:\Users\kolev\source\repos\TestTrans\TestTrans\obj\Debug\TestTrans.csproj.AssemblyReference.cache
+C:\Users\kolev\source\repos\TestTrans\TestTrans\obj\Debug\TestTrans.csproj.CoreCompileInputs.cache
+C:\Users\kolev\source\repos\TestTrans\TestTrans\bin\Debug\TestTrans.exe.config
+C:\Users\kolev\source\repos\TestTrans\TestTrans\bin\Debug\TestTrans.exe
+C:\Users\kolev\source\repos\TestTrans\TestTrans\bin\Debug\TestTrans.pdb
+C:\Users\kolev\source\repos\TestTrans\TestTrans\obj\Debug\TestTrans.exe
+C:\Users\kolev\source\repos\TestTrans\TestTrans\obj\Debug\TestTrans.pdb
