@@ -1,0 +1,1 @@
+Delete folder "obj" in project, it's right under bin
